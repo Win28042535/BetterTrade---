@@ -45,7 +45,13 @@ body{font-family:var(--font);color:var(--ink);}
 .logo{position:absolute;top:28px;right:72px;height:34px;}
 .hd{display:flex;align-items:flex-end;justify-content:space-between;padding:22px 0 24px;border-bottom:1px solid var(--line-strong);}
 .hd-kicker{font-size:22px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);font-weight:500;}
-.hd-title{font-size:76px;font-weight:700;line-height:1.05;margin-top:8px;}
+/* spectrum band sweeping through ink text; the vertical padding keeps Thai tone marks inside the
+   clipped background (text is transparent, so anything outside the box would vanish) */
+.hd-title{font-size:76px;font-weight:700;line-height:1.05;margin-top:-4px;padding:.12em 0;color:var(--ink);
+  background:linear-gradient(100deg,var(--ink) 0 34%,#61e8ed 41%,#9c91ff 47%,#f178d8 53%,#f2ea83 59%,var(--ink) 66% 100%);
+  background-size:300% 100%;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+  animation:shimmer 6s linear infinite;}
+@keyframes shimmer{from{background-position:100% 0}to{background-position:0 0}}
 .total{text-align:right;}
 .total-n{font-family:var(--serif);font-weight:600;font-size:52px;line-height:.9;font-variant-numeric:tabular-nums;}
 .total-l{font-size:19px;color:var(--muted);margin-top:6px;}
@@ -55,32 +61,52 @@ body{font-family:var(--font);color:var(--ink);}
 
 /* #1 hero — centred column; the glow behind the card is the screen's loudest element */
 .hero{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;min-height:0;}
-.hero::before{content:"";position:absolute;inset:2% -4% 14%;z-index:0;filter:blur(24px);
+/* tight, saturated glow hugging the card — sits in .hero-wrap right behind it */
+.hero-wrap{position:relative;margin-top:16px;}
+/* blobs are centred on the card's own edges, so half of each spills out as a ~50px halo */
+.hero-glow{position:absolute;inset:-50px;filter:blur(30px);
   background:
-    radial-gradient(closest-side at 26% 36%, color-mix(in srgb,var(--cyan) 45%,transparent), transparent),
-    radial-gradient(closest-side at 76% 28%, color-mix(in srgb,var(--pink) 35%,transparent), transparent),
-    radial-gradient(closest-side at 30% 74%, color-mix(in srgb,var(--violet) 45%,transparent), transparent),
-    radial-gradient(closest-side at 76% 70%, color-mix(in srgb,var(--yellow) 50%,transparent), transparent);
+    radial-gradient(150px 260px at 10% 26%, color-mix(in srgb,var(--cyan) 32%,transparent), transparent 75%),
+    radial-gradient(180px 150px at 72% 8%, color-mix(in srgb,var(--pink) 32%,transparent), transparent 75%),
+    radial-gradient(160px 280px at 90% 52%, color-mix(in srgb,var(--pink) 32%,transparent), transparent 75%),
+    radial-gradient(170px 280px at 10% 74%, color-mix(in srgb,var(--violet) 32%,transparent), transparent 75%),
+    radial-gradient(220px 160px at 66% 92%, color-mix(in srgb,var(--yellow) 32%,transparent), transparent 75%);
   animation:breathe 8s ease-in-out infinite;}
-@keyframes breathe{50%{transform:scale(1.06) rotate(4deg);opacity:.8}}
-.hero > *{position:relative;z-index:1;}
+@keyframes breathe{50%{transform:scale(1.03) rotate(2deg);opacity:.85}}
 /* rank pill — shared by #1 and the tiles; UI font so the numeral doesn't echo the serif counts */
 .pill{display:inline-flex;align-items:center;align-self:center;border-radius:48px;background:rgba(17,19,24,0.07);color:#3a4048;
   font-family:var(--font);font-weight:500;line-height:1;white-space:nowrap;}
 .hero-rank{padding:10px 24px;font-size:24px;}
-.hero-card{margin-top:16px;height:570px;aspect-ratio:5/7;border-radius:28px;overflow:hidden;
+.hero-card{position:relative;height:540px;aspect-ratio:5/7;border-radius:28px;overflow:hidden;
   box-shadow:0 30px 80px color-mix(in srgb,var(--violet) 45%,transparent),0 6px 18px rgba(17,19,24,0.14);}
-.hero-card img{width:100%;height:100%;object-fit:cover;display:block;transition:opacity .5s var(--ease);}
-.hero-n{margin-top:22px;font-family:var(--serif);font-weight:600;font-size:112px;line-height:.85;font-variant-numeric:tabular-nums;}
-.hero-n small{font-family:var(--font);font-size:30px;color:var(--muted);margin-left:10px;}
-.hero-pct{font-size:24px;color:var(--muted);margin-top:10px;}
+.hero-card img{width:100%;height:100%;object-fit:cover;display:block;}
+/* margin clears the glow's ~50px spill below the card */
+.hero-n{margin-top:56px;font-family:var(--serif);font-weight:600;font-size:144px;line-height:.8;font-variant-numeric:tabular-nums;}
+.hero-n small{font-family:var(--font);font-size:36px;color:var(--muted);margin-left:12px;}
+
+/* live counts: a "+N" floats off the number each time it steps up */
+.v{position:relative;display:inline-block;}
+.plus{position:absolute;left:100%;top:-.05em;margin-left:6px;font-family:var(--font);font-weight:700;font-size:22px;line-height:1;
+  color:#15803d;white-space:nowrap;pointer-events:none;animation:plus 1.4s var(--ease) forwards;}
+.hero-n .plus{font-size:32px;margin-left:10px;}
+@keyframes plus{from{opacity:0;transform:translateY(12px)}20%{opacity:1}to{opacity:0;transform:translateY(-30px)}}
 
 /* #2–12 — 3 × 4 grid on a cloud panel; slot 12 stays empty */
 .grid{position:relative;border-radius:28px;background:#e2e7ef;padding:12px;min-height:0;}
 .tiles{position:relative;width:100%;height:100%;}
 .tile{position:absolute;left:0;top:0;width:var(--w);height:var(--h);display:flex;gap:18px;align-items:center;padding:6px 16px 6px 6px;
   border-radius:20px;background:rgba(255,255,255,0.85);border:2px solid transparent;
-  transition:transform .9s var(--ease),box-shadow .6s,background .6s;will-change:transform;}
+  transition:transform 1.2s var(--ease),scale .5s var(--ease),box-shadow .5s;will-change:transform;z-index:1;}
+/* while overtaking, a rising tile lifts above the ones it passes */
+.tile.rise{z-index:5;scale:1.05;box-shadow:0 18px 44px rgba(17,19,24,0.22);}
+.tile.fall{z-index:0;}
+.tile.hold-card .tile-card{visibility:hidden;} /* its card is mid-flight to/from the hero slot */
+.delta{display:none;margin-left:8px;font-size:.9em;font-style:normal;}
+.tile.up .delta,.tile.down .delta{display:inline;}
+.tile.up .delta{color:#15803d;} .tile.up .delta::after{content:"▲";}
+.tile.down .delta{color:var(--muted);} .tile.down .delta::after{content:"▼";}
+.flyer{position:absolute;z-index:20;overflow:hidden;box-shadow:0 24px 60px rgba(17,19,24,0.3);pointer-events:none;}
+.flyer img{width:100%;height:100%;object-fit:cover;display:block;}
 .tile-card{flex:none;height:100%;aspect-ratio:5/7;border-radius:10px;overflow:hidden;box-shadow:0 4px 12px rgba(17,19,24,0.16);}
 .tile-card img{width:100%;height:100%;object-fit:cover;display:block;}
 .tile-info{flex:1;min-width:0;height:100%;display:flex;flex-direction:column;}
@@ -94,7 +120,7 @@ body{font-family:var(--font);color:var(--ink);}
 .foot b{display:inline-block;width:8px;height:8px;border-radius:50%;background:#15803d;margin-right:8px;vertical-align:middle;animation:pulse 2s infinite;}
 .foot.stale b{background:#c2410c;animation:none;}
 @keyframes pulse{50%{opacity:.3}}
-@media (prefers-reduced-motion:reduce){.tile,.hero-card img{transition:none}.foot b,.hero::before{animation:none}}
+@media (prefers-reduced-motion:reduce){.tile{transition:none}.foot b,.hero-glow,.hd-title{animation:none}}
 </style>
 </head>
 <body>
@@ -111,9 +137,8 @@ body{font-family:var(--font);color:var(--ink);}
   <main class="body">
     <section class="hero">
       <div class="pill hero-rank">อันดับ 1</div>
-      <div class="hero-card"><img id="heroImg" alt=""></div>
-      <div class="hero-n"><span id="heroN">0</span><small>คน</small></div>
-      <div class="hero-pct" id="heroPct"></div>
+      <div class="hero-wrap"><div class="hero-glow"></div><div class="hero-card" id="heroCard"><img id="heroImg" alt=""></div></div>
+      <div class="hero-n"><span class="v" id="heroN">0</span><small>คน</small></div>
     </section>
 
     <section class="grid"><div class="tiles" id="tiles"></div></section>
@@ -156,17 +181,20 @@ addEventListener('keydown', e => {
   }
 });
 
-/* ── count-up for numbers ── */
+/* ── numbers ── */
 const fmt = n => Math.round(n).toLocaleString('en-US');
-function tween(el, to){
-  const from = +el.dataset.v || 0; el.dataset.v = to;
-  if (from === to){ el.textContent = fmt(to); return; }
-  const t0 = performance.now(), dur = 900;
-  (function step(t){
-    const k = Math.min(1, (t - t0)/dur), e = 1 - Math.pow(1 - k, 3);
-    el.textContent = fmt(from + (to - from)*e);
-    if (k < 1) requestAnimationFrame(step);
-  })(t0);
+function setNum(el, v, plus){
+  const s = fmt(v);
+  if (s === el.dataset.s) return;
+  el.dataset.s = s;
+  el.textContent = s;
+  if (plus > 0){
+    const b = document.createElement('b');
+    b.className = 'plus';
+    b.textContent = '+' + plus;
+    b.addEventListener('animationend', () => b.remove());
+    el.appendChild(b);
+  }
 }
 
 /* ── tiles are created once per persona and moved by transform, so reorders animate ── */
@@ -177,48 +205,137 @@ function tileFor(key){
   const p = PERSONAS[key], el = document.createElement('div');
   el.className = 'tile';
   el.innerHTML = `<div class="tile-card"><img src="assets/${key}.jpg" alt=""></div>
-    <div class="tile-info"><div class="pill tile-rank"></div><div class="tile-th">${p.th}</div><div class="tile-en">${p.en}</div>
+    <div class="tile-info"><div class="pill tile-rank"><span class="rk"></span><i class="delta"></i></div><div class="tile-th">${p.th}</div><div class="tile-en">${p.en}</div>
     <div class="tile-n"><span class="v">0</span><small>คน</small></div></div>`;
   tilesEl.appendChild(el);
   return tileEls[key] = el;
 }
 
-let heroKey = null;
+/* ── #1 swaps: the cards themselves fly between the grid and the hero slot ── */
+const FLY_MS = 1200, FLY_EASE = 'cubic-bezier(0.22,1,0.36,1)';
+const heroCard = document.getElementById('heroCard'), heroImg = document.getElementById('heroImg');
+// an element's box in stage pixels (the stage is scaled to the window, so undo that scale)
+function stageRect(el){
+  const s = stage.getBoundingClientRect(), r = el.getBoundingClientRect(), k = s.width / 1920;
+  return {left:(r.left - s.left)/k, top:(r.top - s.top)/k, width:r.width/k, height:r.height/k};
+}
+function fly(key, from, to, r0, r1, onLand){
+  const f = document.createElement('div');
+  f.className = 'flyer';
+  f.innerHTML = `<img src="assets/${key}.jpg" alt="">`;
+  stage.appendChild(f);
+  const kf = (r, rad) => ({left:r.left+'px', top:r.top+'px', width:r.width+'px', height:r.height+'px', borderRadius:rad+'px'});
+  f.animate([kf(from, r0), kf(to, r1)], {duration:FLY_MS, easing:FLY_EASE, fill:'forwards'})
+    .finished.then(() => { onLand(); f.remove(); });
+}
+function setHero(key){ heroImg.src = `assets/${key}.jpg`; heroImg.alt = PERSONAS[key].en; }
+// restartable class flag, e.g. flag(el, 'up', 3000)
+function flag(el, cls, ms){
+  clearTimeout(el['_' + cls]);
+  el.classList.add(cls);
+  el['_' + cls] = setTimeout(() => el.classList.remove(cls), ms);
+}
+
+/* ── live counts ──
+   New data doesn't move every number at once: each persona steps up by its full increase at a
+   random moment within the update interval, and at most once every STEP_GAP, so the screen keeps
+   changing in a calm, staggered rhythm. Ranks follow the numbers on screen, so a swap happens the
+   moment one count visibly passes another. */
+const KEYS = Object.keys(PERSONAS);
+const SPAN = (DEMO ? 3000 : POLL_MS) * 0.9, STEP_GAP = 10000;
+let shown = null, target = {}, nextStep = {}, lastStep = {};
+
 function render(data){
-  const counts = data.counts || {};
-  const ranked = Object.keys(PERSONAS)
-    .map(k => ({k, n: +counts[k] || 0}))
-    .sort((a, b) => b.n - a.n || a.k.localeCompare(b.k));
-  const total = ranked.reduce((s, r) => s + r.n, 0);
-  tween(document.getElementById('total'), total);
+  const counts = data.counts || {}, now = performance.now();
+  if (!shown){ // first data: show it as-is
+    shown = Object.fromEntries(KEYS.map(k => [k, +counts[k] || 0]));
+    target = {...shown};
+    layout({});
+  } else {
+    let dropped = false;
+    KEYS.forEach(k => {
+      target[k] = +counts[k] || 0;
+      if (target[k] < shown[k]){ shown[k] = target[k]; dropped = true; } // a correction: no ticking down
+      // schedule one step unless one is already waiting (it will carry the whole pending amount)
+      if (target[k] > shown[k] && nextStep[k] == null)
+        nextStep[k] = Math.max(now + Math.random() * SPAN, (lastStep[k] ?? -Infinity) + STEP_GAP);
+    });
+    if (dropped) layout({});
+  }
+  const when = data.updatedAt ? new Date(data.updatedAt) : new Date();
+  document.getElementById('updated').textContent =
+    (DEMO ? 'โหมดทดสอบ · ' : '') + 'อัปเดตล่าสุด ' + when.toLocaleTimeString('th-TH', {hour:'2-digit', minute:'2-digit', second:'2-digit'});
+}
+
+setInterval(() => {
+  if (!shown) return;
+  const now = performance.now(), bumped = {};
+  KEYS.forEach(k => {
+    if (nextStep[k] != null && now >= nextStep[k]){
+      nextStep[k] = null;
+      if (shown[k] < target[k]){ bumped[k] = target[k] - shown[k]; shown[k] = target[k]; lastStep[k] = now; }
+    }
+  });
+  if (Object.keys(bumped).length) layout(bumped);
+}, 100);
+
+let heroKey = null, prevRank = {}, flying = false;
+function layout(bumped){
+  const ranked = KEYS.map(k => ({k, n:shown[k]}))
+    // ties keep their current order, so equal counts don't flicker back and forth
+    .sort((a, b) => b.n - a.n || (prevRank[a.k] || 99) - (prevRank[b.k] || 99) || a.k.localeCompare(b.k));
+  setNum(document.getElementById('total'), ranked.reduce((s, r) => s + r.n, 0), 0);
+
+  // mid-swap: only the numbers move; the order catches up when the cards land
+  if (flying){
+    setNum(document.getElementById('heroN'), shown[heroKey], bumped[heroKey] || 0);
+    KEYS.forEach(k => { if (k !== heroKey && tileEls[k]) setNum(tileEls[k].querySelector('.v'), shown[k], bumped[k] || 0); });
+    return;
+  }
 
   const top = ranked[0];
-  if (top.k !== heroKey){
-    const img = document.getElementById('heroImg');
-    img.style.opacity = 0;
-    setTimeout(() => { img.src = `assets/${top.k}.jpg`; img.alt = PERSONAS[top.k].en; img.style.opacity = 1; }, heroKey ? 300 : 0);
-    heroKey = top.k;
-  }
-  tween(document.getElementById('heroN'), top.n);
-  document.getElementById('heroPct').textContent = `${total ? (top.n / total * 100).toFixed(1) : 0}% ของผู้ร่วมค้นหาทั้งหมด`;
+  // a new #1: capture both card boxes before the grid re-lays out
+  const swap = heroKey && top.k !== heroKey && tileEls[top.k]
+    ? {up:top.k, down:heroKey, from:stageRect(tileEls[top.k].querySelector('.tile-card')), hero:stageRect(heroCard)}
+    : null;
+  if (!heroKey) setHero(top.k);
+  const sameHero = heroKey === top.k;
+  heroKey = top.k;
+  setNum(document.getElementById('heroN'), top.n, sameHero ? bumped[top.k] || 0 : 0);
 
   // the hero persona leaves the grid; ranks 2–12 fill slots 1–11 (slot 12 stays empty)
   const w = (tilesEl.clientWidth - GAP * (COLS - 1)) / COLS;
   const h = (tilesEl.clientHeight - GAP * (ROWS - 1)) / ROWS;
   if (tileEls[top.k]) tileEls[top.k].style.visibility = 'hidden';
   ranked.slice(1).forEach((r, i) => {
-    const el = tileFor(r.k), col = i % COLS, row = Math.floor(i / COLS);
+    const fresh = !tileEls[r.k], el = tileFor(r.k), col = i % COLS, row = Math.floor(i / COLS), rank = i + 2;
+    const jump = fresh || el.style.visibility === 'hidden'; // just came down from #1: place it, don't slide
     el.style.visibility = '';
     el.style.setProperty('--w', w + 'px');
     el.style.setProperty('--h', h + 'px');
+    if (jump) el.style.transition = 'none';
     el.style.transform = `translate(${col * (w + GAP)}px,${row * (h + GAP)}px)`;
-    el.querySelector('.tile-rank').textContent = `อันดับ ${i + 2}`;
-    tween(el.querySelector('.v'), r.n);
+    if (jump){ el.offsetWidth; el.style.transition = ''; }
+    el.querySelector('.rk').textContent = `อันดับ ${rank}`;
+    const prev = prevRank[r.k];
+    if (prev && rank < prev){ flag(el, 'rise', FLY_MS); flag(el, 'up', 3000); el.classList.remove('down'); }
+    if (prev && rank > prev){ flag(el, 'fall', FLY_MS); flag(el, 'down', 3000); el.classList.remove('up'); }
+    setNum(el.querySelector('.v'), r.n, bumped[r.k] || 0);
   });
+  prevRank = Object.fromEntries(ranked.map((r, i) => [r.k, i + 1]));
 
-  const when = data.updatedAt ? new Date(data.updatedAt) : new Date();
-  document.getElementById('updated').textContent =
-    (DEMO ? 'โหมดทดสอบ · ' : '') + 'อัปเดตล่าสุด ' + when.toLocaleTimeString('th-TH', {hour:'2-digit', minute:'2-digit', second:'2-digit'});
+  if (swap){
+    const down = tileEls[swap.down];
+    down.classList.add('hold-card');
+    heroImg.style.visibility = 'hidden';
+    flying = true;
+    fly(swap.up, swap.from, swap.hero, 10, 28, () => { setHero(swap.up); heroImg.style.visibility = ''; });
+    fly(swap.down, swap.hero, stageRect(down.querySelector('.tile-card')), 28, 10, () => {
+      down.classList.remove('hold-card');
+      flying = false;
+      layout({}); // apply any overtakes that ticked in during the flight
+    });
+  }
 }
 
 /* ── data source ── */
@@ -241,6 +358,8 @@ if (DEMO){
   setInterval(() => {
     const c = {...current.counts};
     Object.keys(c).forEach(k => { if (Math.random() < .5) c[k] += Math.floor(Math.random() * 9); });
+    // now and then one persona surges, so overtakes (including #1) actually happen
+    if (Math.random() < .4){ const ks = Object.keys(c), k = ks[Math.floor(Math.random() * ks.length)]; c[k] += 20 + Math.floor(Math.random() * 40); }
     current = {updatedAt:new Date().toISOString(), counts:c};
     render(current);
   }, 3000);
