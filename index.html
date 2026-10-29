@@ -91,12 +91,12 @@ body{font-family:var(--font);color:var(--ink);}
 .pill{display:inline-flex;align-items:center;align-self:center;border-radius:48px;background:rgba(17,19,24,0.07);color:#3a4048;
   font-family:var(--font);font-weight:500;line-height:1;white-space:nowrap;}
 .hero-rank{padding:10px 24px;font-size:24px;}
-.hero-card{position:relative;height:540px;aspect-ratio:5/7;border-radius:28px;overflow:hidden;
+.hero-card{position:relative;height:524px;aspect-ratio:5/7;border-radius:28px;overflow:hidden;
   box-shadow:0 30px 80px color-mix(in srgb,var(--violet) 45%,transparent),0 6px 18px rgba(17,19,24,0.14);}
 .hero-card img{width:100%;height:100%;object-fit:cover;display:block;}
 /* margin clears the glow's ~50px spill below the card */
-.hero-n{margin-top:56px;font-family:var(--serif);font-weight:600;font-size:144px;line-height:.8;font-variant-numeric:tabular-nums;}
-.hero-n small{font-family:var(--font);font-size:36px;color:var(--muted);margin-left:12px;}
+.hero-n{margin-top:48px;font-family:var(--serif);font-weight:600;font-size:172px;line-height:.8;font-variant-numeric:tabular-nums;}
+.hero-n small{font-family:var(--font);font-size:48px;color:var(--muted);margin-left:12px;}
 
 /* live counts: a "+N" floats off the number each time it steps up */
 .v{position:relative;display:inline-block;}
@@ -106,10 +106,16 @@ body{font-family:var(--font);color:var(--ink);}
 @keyframes plus{from{opacity:0;transform:translateY(12px)}20%{opacity:1}to{opacity:0;transform:translateY(-30px)}}
 
 /* #2–12 — 3 × 4 grid on a cloud panel; slot 12 stays empty */
-.grid{position:relative;border-radius:28px;background:#e2e7ef;padding:12px;min-height:0;}
+/* the DNA spectrum, pastel, so the near-opaque white tiles pop off it */
+.grid{position:relative;border-radius:28px;padding:12px;min-height:0;
+  background:linear-gradient(125deg,
+    color-mix(in srgb,var(--cyan) 42%,var(--white)) 0%,
+    color-mix(in srgb,var(--violet) 40%,var(--white)) 36%,
+    color-mix(in srgb,var(--pink) 36%,var(--white)) 68%,
+    color-mix(in srgb,var(--yellow) 45%,var(--white)) 100%);}
 .tiles{position:relative;width:100%;height:100%;}
 .tile{position:absolute;left:0;top:0;width:var(--w);height:var(--h);display:flex;gap:18px;align-items:center;padding:6px 16px 6px 6px;
-  border-radius:20px;background:rgba(255,255,255,0.85);border:2px solid transparent;
+  border-radius:20px;background:rgba(255,255,255,0.94);border:2px solid transparent;box-shadow:0 4px 14px rgba(17,19,24,0.08);
   transition:transform 1.2s var(--ease),scale .5s var(--ease),box-shadow .5s;will-change:transform;z-index:1;}
 /* while overtaking, a rising tile lifts above the ones it passes */
 .tile.rise{z-index:5;scale:1.05;box-shadow:0 18px 44px rgba(17,19,24,0.22);}
@@ -127,8 +133,8 @@ body{font-family:var(--font);color:var(--ink);}
 .tile-rank{align-self:flex-start;margin-top:8px;padding:6px 14px;font-size:18px;}
 .tile-th{font-size:26px;font-weight:700;line-height:1.15;margin-top:6px;}
 .tile-en{font-family:var(--serif);font-size:20px;color:var(--muted);margin-top:2px;}
-.tile-n{margin-top:auto;display:flex;align-items:baseline;font-family:var(--serif);font-weight:600;font-size:76px;line-height:.8;font-variant-numeric:tabular-nums;}
-.tile-n small{font-family:var(--font);font-size:20px;color:var(--muted);margin-left:6px;}
+.tile-n{margin-top:auto;display:flex;align-items:baseline;font-family:var(--serif);font-weight:600;font-size:80px;line-height:.8;font-variant-numeric:tabular-nums;}
+.tile-n small{font-family:var(--font);font-size:32px;color:var(--muted);margin-left:6px;}
 
 .foot{position:absolute;right:72px;bottom:12px;font-size:18px;color:var(--muted);letter-spacing:.04em;}
 .foot b{display:inline-block;width:8px;height:8px;border-radius:50%;background:#15803d;margin-right:8px;vertical-align:middle;animation:pulse 2s infinite;}
