@@ -81,8 +81,12 @@ html.wide .body{grid-template-columns:1380px 1fr;gap:80px;}
 /* podium — 16:9 shows only #1 (the hero); 4:1 lines up 2–1–3 on a common floor, #1 tallest and centred.
    The #1 slot keeps the .hero-* look; the glow behind its card is the screen's loudest element */
 .podium{position:relative;display:flex;align-items:center;justify-content:center;gap:40px;min-height:0;}
-html.wide .podium{gap:120px;}
+html.wide .podium{gap:80px;}
 .pod{position:relative;display:flex;flex-direction:column;align-items:center;text-align:center;}
+/* fixed columns: the width of a count or % must never re-centre the podium and nudge the cards */
+.pod-1{width:560px;}
+html.wide .pod-1{width:440px;}
+html.wide .pod-2,html.wide .pod-3{width:320px;}
 .pod-2,.pod-3{display:none;}
 html.wide .pod-2,html.wide .pod-3{display:flex;}
 .pod-wrap{position:relative;margin-top:16px;}
