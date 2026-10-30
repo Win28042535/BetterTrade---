@@ -9,8 +9,7 @@
   Design prototype: no real data. The counts are simulated from SAMPLE (see "simulated data" in the
   script) so the live-count and rank-swap animations can be previewed; a real source would feed
   render({counts}) instead.
-  F → toggle fullscreen · V → switch colour version (old / new) · H → hide the version switch
-  ?v=old | ?v=new → open on a version (default new)
+  F → toggle fullscreen
 -->
 <style>
 @font-face{font-family:'FC Minimal';src:url(assets/fc-minimal-100-500.ttf) format('truetype');font-weight:100 500;font-display:swap;}
@@ -19,35 +18,20 @@
 @font-face{font-family:'Taviraj';src:url(assets/taviraj-medium.ttf) format('truetype');font-weight:100 599;font-display:swap;}
 @font-face{font-family:'Taviraj';src:url(assets/taviraj-bold.ttf) format('truetype');font-weight:600 900;font-display:swap;}
 
-/* Tokens start from dna-quiz-flow.html's :root. Colour lives in two switchable themes (old / new,
-   see the A/B panel in the script); everything else is shared. */
+/* Tokens start from dna-quiz-flow.html's :root. Colour follows the event: the sky of the
+   better-trade-2026.vercel.app hero, and the deeper, iridescent spectrum of the 3D asset elements
+   (#00D4FE → #F79319, as on the site's title highlight). */
 :root{
   --ink:#111318; --muted:#687078; --white:#fff;
   --line:rgba(17,19,24,0.09); --line-strong:rgba(17,19,24,0.17);
   --font:'FC Minimal','Taviraj',system-ui,'Segoe UI',sans-serif;
   --serif:'Baskervville','Bodoni MT',Georgia,serif;
   --ease:cubic-bezier(0.22,1,0.36,1);
-
-  /* ── theme: "old" = the DNA app's pastel spectrum on a blue-grey ground ── */
-  --base:#cfd6e2; /* letterbox; a step darker than the app's paper so white tiles and the #1 card lift off it */
-  --muted-base:#4b535c; /* --muted reads too faint on the ground; used for text that sits directly on it */
-  --spectrum:linear-gradient(120deg,#61e8ed,#9c91ff,#f178d8,#f2ea83);
-  --grid-bg:linear-gradient(125deg,#61e8ed 0%,#9c91ff 36%,#f178d8 68%,#f2ea83 100%);
-  --g1:#61e8ed; --g2:#f178d8; --g3:#f178d8; --g4:#9c91ff; --g5:#f2ea83; /* #1 glow blobs */
-  --bloom:#9c91ff;
-  --stage-bg:
-    radial-gradient(900px 700px at 16% 62%, color-mix(in srgb,#9c91ff 14%,transparent), transparent 70%),
-    radial-gradient(700px 500px at 60% 30%, color-mix(in srgb,#61e8ed 8%,transparent), transparent 70%),
-    #cfd6e2;
-}
-/* ── theme: "new" = the event site's sky (hero of better-trade-2026.vercel.app) and the deeper,
-   iridescent spectrum of the 3D asset elements (#00D4FE → #F79319, as on the site's title highlight) ── */
-html.v-new{
-  --base:#c3d9f6;
-  --muted-base:#3f5370;
+  --base:#c3d9f6;       /* letterbox around the stage */
+  --muted-base:#3f5370; /* --muted reads too faint on the sky; used for text that sits directly on it */
   --spectrum:linear-gradient(120deg,#00d4fe,#1f87e6 20%,#113cf3 38%,#722df4 55%,#e63bd8 75%,#f79319);
   --grid-bg:linear-gradient(125deg,#00d4fe 0%,#1f87e6 18%,#113cf3 34%,#722df4 52%,#e63bd8 74%,#f79319 100%);
-  --g1:#00d4fe; --g2:#e63bd8; --g3:#1f87e6; --g4:#722df4; --g5:#f79319;
+  --g1:#00d4fe; --g2:#e63bd8; --g3:#1f87e6; --g4:#722df4; --g5:#f79319; /* #1 glow blobs */
   --bloom:#722df4;
   --stage-bg:
     /* the light shaft falling toward the #1 card, and soft cloud banks */
@@ -125,15 +109,16 @@ body{font-family:var(--font);color:var(--ink);}
     box-shadow:var(--sh-near),0 18px 32px rgba(17,19,24,0.13),0 54px 80px -14px rgba(17,19,24,0.22),var(--sh-bloom);}}
 .hero-card img{width:100%;height:100%;object-fit:cover;display:block;}
 /* margin clears the glow's ~50px spill below the card */
-.hero-n{margin-top:48px;font-family:var(--serif);font-weight:600;font-size:172px;line-height:.8;font-variant-numeric:tabular-nums;}
-.hero-n small{font-family:var(--font);font-size:56px;color:var(--muted-base);margin-left:12px;}
+.hero-n{margin-top:48px;display:flex;align-items:flex-end;justify-content:center;
+  font-family:var(--serif);font-weight:600;font-size:172px;line-height:.8;font-variant-numeric:tabular-nums;}
+.hero-n .unit{margin-left:16px;font-size:56px;}
+.hero-n small{font-family:var(--font);color:var(--muted-base);}
 
-/* live counts: a "+N" floats off the number each time it steps up */
-.v{position:relative;display:inline-block;}
-.plus{position:absolute;left:100%;top:-.05em;margin-left:6px;font-family:var(--font);font-weight:700;font-size:22px;line-height:1;
-  color:#15803d;white-space:nowrap;pointer-events:none;animation:plus 1.4s var(--ease) forwards;}
-.hero-n .plus{font-size:32px;margin-left:10px;}
-@keyframes plus{from{opacity:0;transform:translateY(12px)}20%{opacity:1}to{opacity:0;transform:translateY(-30px)}}
+/* beside each count: its share of the total stacked over the "คน" unit, same size as the unit; the %
+   takes the deep middle of the spectrum (blue → violet → magenta) — the pale ends wash out on white */
+.unit{display:inline-flex;flex-direction:column;align-items:flex-start;line-height:1;}
+.pct{font-family:var(--font);font-weight:700;white-space:nowrap;padding-bottom:.08em;
+  background:linear-gradient(90deg,#113cf3,#722df4 55%,#e63bd8);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;}
 
 /* #2–12 — 3 × 4 grid on a cloud panel; slot 12 stays empty */
 /* the full-strength DNA spectrum (as on the #1 pill), so the near-opaque white tiles pop off it */
@@ -158,21 +143,21 @@ body{font-family:var(--font);color:var(--ink);}
 .tile-rank{align-self:flex-start;margin-top:8px;padding:6px 14px;font-size:18px;}
 .tile-th{font-size:26px;font-weight:700;line-height:1.15;margin-top:6px;}
 .tile-en{font-family:var(--serif);font-size:20px;color:var(--muted);margin-top:2px;}
-.tile-n{margin-top:auto;display:flex;align-items:baseline;font-family:var(--serif);font-weight:600;font-size:80px;line-height:.8;font-variant-numeric:tabular-nums;}
-.tile-n small{font-family:var(--font);font-size:32px;color:var(--muted);margin-left:6px;}
+.tile-n{margin-top:auto;display:flex;align-items:flex-end;font-family:var(--serif);font-weight:600;font-size:72px;line-height:.8;font-variant-numeric:tabular-nums;}
+.tile-n .unit{margin-left:10px;font-size:32px;}
+.tile-n small{font-family:var(--font);color:var(--muted);}
 
 .foot{position:absolute;right:72px;bottom:12px;font-size:18px;color:var(--muted-base);letter-spacing:.04em;}
 .foot b{display:inline-block;width:8px;height:8px;border-radius:50%;background:#15803d;margin-right:8px;vertical-align:middle;animation:pulse 2s infinite;}
 @keyframes pulse{50%{opacity:.3}}
 
-/* ── floating 3D assets (new version only) ──
+/* ── floating 3D assets ──
    As in the event site's hero: each object sits at its own tilt and bobs/swings slowly on its own
    period, out of step with the others. They only use empty space: the 12th grid slot, the #1 card's
    corners (heart behind, candles in front) and the gap in the header. */
-.fl{display:none;position:absolute;pointer-events:none;height:var(--h);
+.fl{position:absolute;pointer-events:none;height:var(--h);
   filter:saturate(1.3) drop-shadow(0 16px 18px rgba(17,19,24,0.18));
   animation:bob var(--dur) ease-in-out var(--delay) infinite alternate;will-change:transform;}
-html.v-new .fl{display:block;}
 @keyframes bob{
   from{transform:translate3d(0,0,0) rotate(var(--rot))}
   to{transform:translate3d(0,var(--drift),0) rotate(calc(var(--rot) + var(--swing)))}}
@@ -187,13 +172,6 @@ html.v-new .fl{display:block;}
 /* straddles the grid's bottom edge, breaking the frame */
 .fl-bitcoin{--h:112px;--rot:-14deg;--swing:6deg; --drift:-12px;--dur:6.5s;--delay:-3s;  left:40px;top:142px;}
 
-/* A/B theme switch (V toggles, H hides) */
-.ab{position:absolute;left:72px;bottom:8px;z-index:30;display:flex;align-items:center;gap:4px;padding:4px 4px 4px 14px;
-  border-radius:48px;background:rgba(255,255,255,0.85);box-shadow:0 4px 14px rgba(17,19,24,0.12);font-size:16px;color:var(--muted);}
-.ab.hide{display:none;}
-.ab span{margin-right:6px;}
-.ab button{font:inherit;font-weight:600;border:0;border-radius:48px;padding:6px 16px;background:transparent;color:var(--muted);cursor:pointer;}
-.ab button[aria-pressed="true"]{background:var(--ink);color:#fff;}
 @media (prefers-reduced-motion:reduce){.tile{transition:none}.foot b,.hero-glow i,.hero-card,.fl{animation:none}}
 </style>
 </head>
@@ -213,16 +191,14 @@ html.v-new .fl{display:block;}
     <section class="hero">
       <div class="pill hero-rank">อันดับ 1</div>
       <div class="hero-wrap"><div class="hero-glow"><i></i><i></i><i></i><i></i><i></i></div><img class="fl fl-heart" src="assets/float/heart.webp" alt=""><div class="hero-card" id="heroCard"><img id="heroImg" alt=""></div><img class="fl fl-stock" src="assets/float/stock.webp" alt=""></div>
-      <div class="hero-n"><span class="v" id="heroN">0</span><small>คน</small></div>
+      <div class="hero-n" id="heroN"><span class="v">0</span><span class="unit"><b class="pct"></b><small>คน</small></span></div>
     </section>
 
     <section class="grid"><div class="tiles" id="tiles">
       <div class="slot12"><img class="fl fl-gold" src="assets/float/gold.webp" alt=""><img class="fl fl-bitcoin" src="assets/float/bitcoin.webp" alt=""></div>
     </div></section>
   </main>
-  <div class="foot"><b></b>ข้อมูลตัวอย่าง (จำลอง)</div>
-  <div class="ab" id="ab" aria-label="เลือกเวอร์ชันสี"><span>เวอร์ชัน</span><button type="button" data-v="old">เดิม</button><button type="button" data-v="new">ใหม่</button></div>
-</div>
+  <div class="foot"><b></b>ข้อมูลตัวอย่าง (จำลอง)</div></div>
 
 <script>
 const PERSONAS = {
@@ -251,39 +227,17 @@ function fit(){
   stage.style.transform = `scale(${s}) translate(-50%,-50%)`;
 }
 addEventListener('resize', fit); fit();
-/* ── A/B colour theme: ?v=old|new (default new); the URL follows the switch so a link opens on that version ── */
-const ab = document.getElementById('ab');
-function setVersion(v){
-  document.documentElement.classList.toggle('v-new', v === 'new');
-  ab.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', b.dataset.v === v));
-  const u = new URL(location.href);
-  u.searchParams.set('v', v);
-  history.replaceState(null, '', u);
-}
-setVersion(new URLSearchParams(location.search).get('v') === 'old' ? 'old' : 'new');
-ab.addEventListener('click', e => { if (e.target.dataset.v) setVersion(e.target.dataset.v); });
-
 addEventListener('keydown', e => {
-  const k = e.key.toLowerCase();
-  if (k === 'f') document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen().catch(()=>{});
-  if (k === 'v') setVersion(document.documentElement.classList.contains('v-new') ? 'old' : 'new');
-  if (k === 'h') ab.classList.toggle('hide');
+  if (e.key.toLowerCase() === 'f')
+    document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen().catch(()=>{});
 });
 
-/* ── numbers ── */
+/* ── numbers: a count and, beside it, its share of the total ── */
 const fmt = n => Math.round(n).toLocaleString('en-US');
-function setNum(el, v, plus){
-  const s = fmt(v);
-  if (s === el.dataset.s) return;
-  el.dataset.s = s;
-  el.textContent = s;
-  if (plus > 0){
-    const b = document.createElement('b');
-    b.className = 'plus';
-    b.textContent = '+' + plus;
-    b.addEventListener('animationend', () => b.remove());
-    el.appendChild(b);
-  }
+function setText(el, s){ if (el.textContent !== s) el.textContent = s; }
+function setCount(box, n, total){ // box holds .v (the count) and .pct
+  setText(box.querySelector('.v'), fmt(n));
+  setText(box.querySelector('.pct'), (total ? n / total * 100 : 0).toFixed(1) + '%');
 }
 
 /* ── tiles are created once per persona and moved by transform, so reorders animate ── */
@@ -295,14 +249,14 @@ function tileFor(key){
   el.className = 'tile';
   el.innerHTML = `<div class="tile-card"><img src="assets/${key}.jpg" alt=""></div>
     <div class="tile-info"><div class="pill tile-rank"><span class="rk"></span><i class="delta"></i></div><div class="tile-th">${p.th}</div><div class="tile-en">${p.en}</div>
-    <div class="tile-n"><span class="v">0</span><small>คน</small></div></div>`;
+    <div class="tile-n"><span class="v">0</span><span class="unit"><b class="pct"></b><small>คน</small></span></div></div>`;
   tilesEl.appendChild(el);
   return tileEls[key] = el;
 }
 
 /* ── #1 swaps: the cards themselves fly between the grid and the hero slot ── */
 const FLY_MS = 1200, FLY_EASE = 'cubic-bezier(0.22,1,0.36,1)';
-const heroCard = document.getElementById('heroCard'), heroImg = document.getElementById('heroImg');
+const heroCard = document.getElementById('heroCard'), heroImg = document.getElementById('heroImg'), heroN = document.getElementById('heroN');
 // an element's box in stage pixels (the stage is scaled to the window, so undo that scale)
 function stageRect(el){
   const s = stage.getBoundingClientRect(), r = el.getBoundingClientRect(), k = s.width / 1920;
@@ -340,7 +294,7 @@ function render(data){
   if (!shown){ // first data: show it as-is
     shown = Object.fromEntries(KEYS.map(k => [k, +counts[k] || 0]));
     target = {...shown};
-    layout({});
+    layout();
   } else {
     let dropped = false;
     KEYS.forEach(k => {
@@ -351,33 +305,35 @@ function render(data){
       if (target[k] > shown[k] && nextStep[k] == null)
         nextStep[k] = Math.max(now + Math.random() * SPAN, (lastStep[k] ?? -Infinity) + STEP_GAP);
     });
-    if (dropped) layout({});
+    if (dropped) layout();
   }
 }
 
 setInterval(() => {
   if (!shown) return;
-  const now = performance.now(), bumped = {};
+  const now = performance.now();
+  let stepped = false;
   KEYS.forEach(k => {
     if (nextStep[k] != null && now >= nextStep[k]){
       nextStep[k] = null;
-      if (shown[k] < target[k]){ bumped[k] = target[k] - shown[k]; shown[k] = target[k]; lastStep[k] = now; }
+      if (shown[k] < target[k]){ shown[k] = target[k]; lastStep[k] = now; stepped = true; }
     }
   });
-  if (Object.keys(bumped).length) layout(bumped);
+  if (stepped) layout();
 }, 100);
 
 let heroKey = null, prevRank = {}, flying = false;
-function layout(bumped){
+function layout(){
   const ranked = KEYS.map(k => ({k, n:shown[k]}))
     // ties keep their current order, so equal counts don't flicker back and forth
     .sort((a, b) => b.n - a.n || (prevRank[a.k] || 99) - (prevRank[b.k] || 99) || a.k.localeCompare(b.k));
-  setNum(document.getElementById('total'), ranked.reduce((s, r) => s + r.n, 0), 0);
+  const total = ranked.reduce((s, r) => s + r.n, 0);
+  setText(document.getElementById('total'), fmt(total));
 
   // mid-swap: only the numbers move; the order catches up when the cards land
   if (flying){
-    setNum(document.getElementById('heroN'), shown[heroKey], bumped[heroKey] || 0);
-    KEYS.forEach(k => { if (k !== heroKey && tileEls[k]) setNum(tileEls[k].querySelector('.v'), shown[k], bumped[k] || 0); });
+    setCount(heroN, shown[heroKey], total);
+    KEYS.forEach(k => { if (k !== heroKey && tileEls[k]) setCount(tileEls[k], shown[k], total); });
     return;
   }
 
@@ -387,9 +343,8 @@ function layout(bumped){
     ? {up:top.k, down:heroKey, from:stageRect(tileEls[top.k].querySelector('.tile-card')), hero:stageRect(heroCard)}
     : null;
   if (!heroKey) setHero(top.k);
-  const sameHero = heroKey === top.k;
   heroKey = top.k;
-  setNum(document.getElementById('heroN'), top.n, sameHero ? bumped[top.k] || 0 : 0);
+  setCount(heroN, top.n, total);
 
   // the hero persona leaves the grid; ranks 2–12 fill slots 1–11 (slot 12 stays empty)
   const w = (tilesEl.clientWidth - GAP * (COLS - 1)) / COLS;
@@ -408,7 +363,7 @@ function layout(bumped){
     const prev = prevRank[r.k];
     if (prev && rank < prev){ flag(el, 'rise', FLY_MS); flag(el, 'up', 3000); el.classList.remove('down'); }
     if (prev && rank > prev){ flag(el, 'fall', FLY_MS); flag(el, 'down', 3000); el.classList.remove('up'); }
-    setNum(el.querySelector('.v'), r.n, bumped[r.k] || 0);
+    setCount(el, r.n, total);
   });
   prevRank = Object.fromEntries(ranked.map((r, i) => [r.k, i + 1]));
 
@@ -421,7 +376,7 @@ function layout(bumped){
     fly(swap.down, swap.hero, stageRect(down.querySelector('.tile-card')), 28, 10, () => {
       down.classList.remove('hold-card');
       flying = false;
-      layout({}); // apply any overtakes that ticked in during the flight
+      layout(); // apply any overtakes that ticked in during the flight
     });
   }
 }
