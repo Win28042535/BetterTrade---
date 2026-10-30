@@ -1,0 +1,5 @@
+{
+  "rewrites": [
+    { "source": "/api/investor-dna", "destination": "https://investor-dna.efin.finance/api/investor-dna" }
+  ]
+}
