@@ -10,7 +10,8 @@
   Counts start from the real figures at /api/investor-dna (a Vercel rewrite to investor-dna.efin.finance,
   re-read every minute; SNAPSHOT is the fallback) and each persona then wanders up to ±JITTER around its real
   figure, so the screen keeps moving (see "counts" in the script). ?jitter=0 shows the real figures exactly.
-  ?speed=fast → a quicker tempo with regular overtakes, for capturing preview video (hides the size switch).
+  ?speed=normal → the calm tempo · ?speed=fast → the default tempo, size switch hidden · ?speed=clip → for short video
+  captures, everything happens within seconds (size switch hidden).
   F → toggle fullscreen · S → switch screen size · H → hide the size switch · ?screen=16x9 | 4x1
 -->
 <style>
@@ -179,7 +180,6 @@ html.wide .hero-n .pct{font-size:66px;}
 .tile{position:absolute;left:0;top:0;width:var(--w);height:var(--h);display:flex;gap:18px;align-items:center;padding:6px 16px 6px 6px;
   border-radius:20px;background:rgba(255,255,255,0.98);border:2px solid transparent;box-shadow:0 6px 18px rgba(17,19,24,0.14);
   transition:transform var(--move,1.2s) var(--ease),scale .5s var(--ease),box-shadow .5s;will-change:transform;z-index:1;}
-html.fast{--move:.8s;}
 /* while overtaking, a rising tile lifts above the ones it passes */
 .tile.rise{z-index:5;scale:1.05;box-shadow:0 18px 44px rgba(17,19,24,0.22);}
 .tile.fall{z-index:0;}
@@ -317,8 +317,15 @@ const SCREENS = {
 };
 const GAP = 12;
 let mode = new URLSearchParams(location.search).get('screen') === '4x1' ? 'wide' : 'std';
-const FAST = new URLSearchParams(location.search).get('speed') === 'fast';
-document.documentElement.classList.toggle('fast', FAST);
+// tempo: how often counts change and overtakes are staged (seconds; normal stages none, its order changes by itself)
+const TEMPOS = {
+  normal:{feed:3000, gap:10000, chance:.2, fly:1200},
+  fast:  {feed:800,  gap:2000,  chance:.5, fly:800, pair:[6, 10],    crown:[25, 30], firstCrown:[25, 30]},
+  clip:  {feed:500,  gap:1000,  chance:.5, fly:800, pair:[2.5, 3.5], crown:[12, 14], firstCrown:[5, 6]},
+};
+const speedParam = new URLSearchParams(location.search).get('speed');
+const TEMPO = TEMPOS[speedParam] || TEMPOS.fast;
+document.documentElement.style.setProperty('--move', TEMPO.fly / 1000 + 's');
 
 /* ── fit the stage into any window (letterboxed) ── */
 const stage = document.getElementById('stage');
@@ -331,7 +338,7 @@ addEventListener('resize', fit);
 
 /* ── screen-size switch: ?screen=16x9|4x1 (default 16:9); the URL follows so a link opens on that size ── */
 const screenSw = document.getElementById('screen');
-if (FAST) screenSw.classList.add('hide');
+if (speedParam === 'fast' || speedParam === 'clip') screenSw.classList.add('hide');
 function setScreen(m){
   mode = m;
   document.documentElement.classList.toggle('wide', m === 'wide');
@@ -373,7 +380,7 @@ function tileFor(key){
 }
 
 /* ── podium swaps: the cards themselves fly between podium slots and the grid ── */
-const FLY_MS = FAST ? 800 : 1200, FLY_EASE = 'cubic-bezier(0.22,1,0.36,1)';
+const FLY_MS = TEMPO.fly, FLY_EASE = 'cubic-bezier(0.22,1,0.36,1)';
 // podium slots in rank order (#1, #2, #3); only the first SCREENS[mode].pod are in use
 const pods = [1, 2, 3].map(n => {
   const el = document.querySelector('.pod-' + n), card = el.querySelector('.pod-card');
@@ -407,8 +414,8 @@ function flag(el, cls, ms){
    changing in a calm, staggered rhythm. Ranks follow the numbers on screen, so a swap happens the
    moment one count visibly passes another. */
 const KEYS = Object.keys(PERSONAS);
-const FEED_MS = FAST ? 800 : 3000; // how often the counts are re-worked (see "counts" below)
-const SPAN = FEED_MS * 0.9, STEP_GAP = FAST ? 2000 : 10000;
+const FEED_MS = TEMPO.feed; // how often the counts are re-worked (see "counts" below)
+const SPAN = FEED_MS * 0.9, STEP_GAP = TEMPO.gap;
 let shown = null, target = {}, nextStep = {}, lastStep = {};
 
 function render(data){
@@ -516,8 +523,8 @@ function layout(opts = {}){
 /* ── counts ──
    base = the real figures, re-read every PULL_MS. Each persona carries its own offset, a random walk pulled
    back toward its real figure (so it hovers within about ±10 and the total stays close to the real one),
-   capped at ±JITTER and never below zero. In fast mode, overtakes are also staged on a timer: a neighbouring
-   pair every 6–10s, #2 past #1 every 25–30s; they use the same ±JITTER room, so one can fall short. */
+   capped at ±JITTER and never below zero. Except at the normal tempo, overtakes are staged on a timer (a
+   neighbouring pair, and #2 past #1; see TEMPOS), using the same ±JITTER room, so one can fall short. */
 const API_URL = '/api/investor-dna', PULL_MS = 60000;
 const JITTER = Math.max(0, Number(new URLSearchParams(location.search).get('jitter') ?? 50) || 0);
 const rand = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
@@ -534,7 +541,7 @@ async function pull(){
 }
 const liveCounts = () => Object.fromEntries(KEYS.map(k => [k, Math.max(0, base[k] + offset[k])]));
 
-const STEP_CHANCE = FAST ? .5 : .2;
+const STEP_CHANCE = TEMPO.chance;
 function wander(){
   if (JITTER){
     const c = liveCounts();
@@ -543,12 +550,12 @@ function wander(){
       if (Math.random() >= STEP_CHANCE) return;
       const up = Math.random() < Math.max(.1, Math.min(.9, .55 - offset[k] / 40));
       let by = (up ? 1 : -1) * rand(1, 3);
-      // fast mode: random steps never change the order, so ranks only flip on a staged overtake (no flicker)
-      if (FAST) by = up ? Math.min(by, i ? c[order[i - 1]] - c[k] : by) : Math.max(by, i < order.length - 1 ? c[order[i + 1]] - c[k] : by);
+      // with staged overtakes, random steps never change the order, so ranks only flip on those (no flicker)
+      if (TEMPO.pair) by = up ? Math.min(by, i ? c[order[i - 1]] - c[k] : by) : Math.max(by, i < order.length - 1 ? c[order[i + 1]] - c[k] : by);
       c[k] += nudge(k, by);
     });
   }
-  if (FAST && JITTER) stageOvertake();
+  if (TEMPO.pair && JITTER) stageOvertake();
   render({counts:liveCounts()});
 }
 // move a persona's offset, staying within ±JITTER and above zero; returns how far it really moved
@@ -557,15 +564,16 @@ function nudge(k, by){
   offset[k] = Math.min(JITTER, Math.max(-JITTER, -base[k], before + by));
   return offset[k] - before;
 }
-let nextPair = performance.now() + rand(6, 10) * 1000, nextCrown = performance.now() + rand(25, 30) * 1000;
+const after = ([a, b]) => performance.now() + (a + Math.random() * (b - a)) * 1000;
+let nextPair = TEMPO.pair && after(TEMPO.pair), nextCrown = TEMPO.pair && after(TEMPO.firstCrown);
 function stageOvertake(){
   const t = performance.now(), c = liveCounts(), order = KEYS.slice().sort((x, y) => c[y] - c[x]);
   const pass = (a, b) => { // lift a past b; if a runs out of room, lower b for the rest
     const need = c[b] + rand(1, 4) - c[a];
     if (need > 0) nudge(b, -(need - nudge(a, need)));
   };
-  if (t >= nextCrown){ pass(order[1], order[0]); nextCrown = t + rand(25, 30) * 1000; }
-  else if (t >= nextPair){ const i = rand(2, KEYS.length - 1); pass(order[i], order[i - 1]); nextPair = t + rand(6, 10) * 1000; }
+  if (t >= nextCrown){ pass(order[1], order[0]); nextCrown = after(TEMPO.crown); }
+  else if (t >= nextPair){ const i = rand(2, KEYS.length - 1); pass(order[i], order[i - 1]); nextPair = after(TEMPO.pair); }
 }
 
 setScreen(mode);
