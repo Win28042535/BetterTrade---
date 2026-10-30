@@ -261,7 +261,7 @@ html.wide .fl-diamond{display:block;left:1110px;top:-180px;} /* the farthest pie
 </head>
 <body>
 <div class="stage" id="stage">
-  <img class="logo" src="LOGO/LOGO-efin-Better Trade/LOGO-efin-Better Trade.png" alt="efin × Better Trade">
+  <img class="logo" src="assets/float/logo.png" alt="efin × Better Trade">
   <header class="hd">
     <div>
       <div class="hd-kicker">BetterTrade 2026 × New World New Playbook · Investor DNA</div>
@@ -372,7 +372,7 @@ function tileFor(key){
   if (tileEls[key]) return tileEls[key];
   const p = PERSONAS[key], el = document.createElement('div');
   el.className = 'tile';
-  el.innerHTML = `<div class="tile-card"><img src="assets/${key}.jpg" alt=""></div>
+  el.innerHTML = `<div class="tile-card"><img src="assets/cards/${key}.webp" alt=""></div>
     <div class="tile-info"><div class="pill tile-rank"><span class="rk"></span><i class="delta"></i></div><div class="tile-th">${p.th}</div><div class="tile-en">${p.en}</div>
     <div class="tile-n"><span class="v">0</span><span class="unit"><b class="pct"></b><small>คน</small></span></div></div>`;
   tilesEl.appendChild(el);
@@ -394,13 +394,13 @@ function stageRect(el){
 function fly(key, from, to, r0, r1, onLand){
   const f = document.createElement('div');
   f.className = 'flyer';
-  f.innerHTML = `<img src="assets/${key}.jpg" alt="">`;
+  f.innerHTML = `<img src="assets/cards/${key}.webp" alt="">`;
   stage.appendChild(f);
   const kf = (r, rad) => ({left:r.left+'px', top:r.top+'px', width:r.width+'px', height:r.height+'px', borderRadius:rad+'px'});
   f.animate([kf(from, r0), kf(to, r1)], {duration:FLY_MS, easing:FLY_EASE, fill:'forwards'})
     .finished.then(() => { onLand(); f.remove(); });
 }
-function setPodImg(i, key){ pods[i].img.src = `assets/${key}.jpg`; pods[i].img.alt = PERSONAS[key].en; pods[i].img.style.visibility = ''; }
+function setPodImg(i, key){ pods[i].img.src = `assets/cards/${key}.webp`; pods[i].img.alt = PERSONAS[key].en; pods[i].img.style.visibility = ''; }
 // restartable class flag, e.g. flag(el, 'up', 3000)
 function flag(el, cls, ms){
   clearTimeout(el['_' + cls]);
