@@ -112,7 +112,7 @@ body{font-family:var(--font);color:var(--ink);}
 .hero-n{margin-top:48px;display:flex;align-items:flex-end;justify-content:center;
   font-family:var(--serif);font-weight:600;font-size:172px;line-height:.8;font-variant-numeric:tabular-nums;}
 .hero-n .unit{margin-left:16px;font-size:56px;}
-.hero-n .pct{font-size:72px;}
+.hero-n .pct{font-size:88px;}
 .hero-n small{font-family:var(--font);color:var(--muted-base);}
 
 /* beside each count: its share of the total stacked over the "คน" unit, same size as the unit; the %
@@ -144,8 +144,10 @@ body{font-family:var(--font);color:var(--ink);}
 .tile-rank{align-self:flex-start;margin-top:8px;padding:6px 14px;font-size:18px;}
 .tile-th{font-size:26px;font-weight:700;line-height:1.15;margin-top:6px;}
 .tile-en{font-family:var(--serif);font-size:20px;color:var(--muted);margin-top:2px;}
-.tile-n{margin-top:auto;display:flex;align-items:flex-end;font-family:var(--serif);font-weight:600;font-size:72px;line-height:.8;font-variant-numeric:tabular-nums;}
+.tile-n{margin-top:auto;display:flex;align-items:flex-end;font-family:var(--serif);font-weight:600;font-size:64px;line-height:.8;font-variant-numeric:tabular-nums;}
 .tile-n .unit{margin-left:10px;font-size:32px;}
+.tile-n .pct{font-size:48px;line-height:.9;padding-bottom:0;} /* tight stack: % + คน must fit the tile's height */
+.tile-n small{line-height:.9;}
 .tile-n small{font-family:var(--font);color:var(--muted);}
 
 .foot{position:absolute;right:72px;bottom:12px;font-size:18px;color:var(--muted-base);letter-spacing:.04em;}
