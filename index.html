@@ -5,11 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Persona Ranking — Better Trade 2026</title>
 <!--
-  Ranking display for the event's big screen — a fixed 1920×1080 stage scaled to fit any window.
+  Ranking display for the event's big screens — a fixed stage scaled to fit any window, in two sizes:
+  16:9 (1920×1080: #1 hero + ranks 2–12 in 3×4) and 4:1 LED (4096×1024: a 2–1–3 podium + ranks 4–12 in 4×3).
   Design prototype: no real data. The counts are simulated from SAMPLE (see "simulated data" in the
   script) so the live-count and rank-swap animations can be previewed; a real source would feed
   render({counts}) instead.
-  F → toggle fullscreen
+  F → toggle fullscreen · S → switch screen size · H → hide the size switch · ?screen=16x9 | 4x1
 -->
 <style>
 @font-face{font-family:'FC Minimal';src:url(assets/fc-minimal-100-500.ttf) format('truetype');font-weight:100 500;font-display:swap;}
@@ -41,6 +42,16 @@
     radial-gradient(800px 300px at 70% 104%, rgba(255,255,255,0.65), transparent 70%),
     radial-gradient(600px 220px at 96% 18%, rgba(255,255,255,0.5), transparent 70%),
     linear-gradient(180deg,#a9c9f3 0%,#bcd5f6 38%,#d6e3f7 72%,#eef2f9 100%);
+  /* the same sky stretched along the 4:1 wall: the shaft lands on the podium's #1, clouds run the length */
+  --stage-bg-wide:
+    radial-gradient(360px 1000px at 21% -10%, rgba(255,255,255,0.55), transparent 70%),
+    radial-gradient(640px 1100px at 21% -10%, rgba(150,192,251,0.45), transparent 72%),
+    radial-gradient(900px 240px at 4% 102%, rgba(255,255,255,0.75), transparent 70%),
+    radial-gradient(1000px 260px at 38% 104%, rgba(255,255,255,0.6), transparent 70%),
+    radial-gradient(1100px 280px at 74% 106%, rgba(255,255,255,0.65), transparent 70%),
+    radial-gradient(800px 200px at 56% 14%, rgba(255,255,255,0.4), transparent 70%),
+    radial-gradient(900px 220px at 97% 16%, rgba(255,255,255,0.5), transparent 70%),
+    linear-gradient(180deg,#a9c9f3 0%,#bcd5f6 38%,#d6e3f7 72%,#eef2f9 100%);
 }
 *{box-sizing:border-box;margin:0;padding:0;}
 html,body{height:100%;overflow:hidden;background:var(--base);}
@@ -48,6 +59,7 @@ body{font-family:var(--font);color:var(--ink);}
 
 .stage{position:absolute;left:50%;top:50%;width:1920px;height:1080px;transform-origin:0 0;overflow:hidden;
   padding:44px 72px 44px;display:grid;grid-template-rows:auto 1fr;gap:32px;background:var(--stage-bg);}
+html.wide .stage{width:4096px;height:1024px;padding:36px 72px 40px;gap:28px;background:var(--stage-bg-wide);}
 
 /* ── header ── */
 .logo{position:absolute;top:28px;right:72px;height:34px;}
@@ -61,9 +73,27 @@ body{font-family:var(--font);color:var(--ink);}
 
 /* ── body ── */
 .body{display:grid;grid-template-columns:560px 1fr;gap:40px;min-height:0;}
+html.wide .body{grid-template-columns:1600px 1fr;gap:48px;}
 
-/* #1 hero — centred column; the glow behind the card is the screen's loudest element */
-.hero{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;min-height:0;}
+/* podium — 16:9 shows only #1 (the hero); 4:1 lines up 2–1–3 on a common floor, #1 tallest and centred.
+   The #1 slot keeps the .hero-* look; the glow behind its card is the screen's loudest element */
+.podium{position:relative;display:flex;align-items:center;justify-content:center;gap:40px;min-height:0;}
+html.wide .podium{align-items:flex-end;gap:72px;}
+.pod{position:relative;display:flex;flex-direction:column;align-items:center;text-align:center;}
+.pod-2,.pod-3{display:none;}
+html.wide .pod-2,html.wide .pod-3{display:flex;}
+.pod-wrap{position:relative;margin-top:16px;}
+.pod-card img{width:100%;height:100%;object-fit:cover;display:block;}
+/* #2/#3: quieter — white pill, smaller card with a plain lifted shadow, no glow or float */
+.pod-2 .pod-card,.pod-3 .pod-card{position:relative;height:400px;aspect-ratio:5/7;border-radius:22px;overflow:hidden;
+  box-shadow:0 2px 4px rgba(17,19,24,0.14),0 18px 36px rgba(17,19,24,0.18);}
+.pod-2 .pod-card::after,.pod-3 .pod-card::after{content:"";position:absolute;inset:0;border-radius:inherit;border:1px solid rgba(255,255,255,0.75);pointer-events:none;}
+.pod-2 .pod-rank,.pod-3 .pod-rank{padding:10px 26px;font-size:26px;background:rgba(255,255,255,0.88);color:var(--ink);box-shadow:0 4px 12px rgba(17,19,24,0.08);}
+.pod-n{margin-top:32px;display:flex;align-items:flex-end;justify-content:center;
+  font-family:var(--serif);font-weight:600;font-size:104px;line-height:.8;font-variant-numeric:tabular-nums;}
+.pod-n .unit{margin-left:12px;font-size:36px;}
+.pod-n .pct{font-size:56px;}
+.pod-n small{font-family:var(--font);color:var(--muted-base);}
 /* tight, saturated glow hugging the card — sits in .hero-wrap right behind it */
 .hero-wrap{position:relative;margin-top:16px;}
 /* five colour blobs centred on the card's own edges, so half of each spills out as a ~50px halo.
@@ -107,12 +137,15 @@ body{font-family:var(--font);color:var(--ink);}
 @keyframes float{
   50%{transform:translateY(-6px);
     box-shadow:var(--sh-near),0 18px 32px rgba(17,19,24,0.13),0 54px 80px -14px rgba(17,19,24,0.22),var(--sh-bloom);}}
-.hero-card img{width:100%;height:100%;object-fit:cover;display:block;}
+html.wide .hero-card{height:520px;}
 /* margin clears the glow's ~50px spill below the card */
 .hero-n{margin-top:48px;display:flex;align-items:flex-end;justify-content:center;
   font-family:var(--serif);font-weight:600;font-size:172px;line-height:.8;font-variant-numeric:tabular-nums;}
 .hero-n .unit{margin-left:16px;font-size:56px;}
 .hero-n .pct{font-size:88px;}
+html.wide .hero-n{margin-top:44px;font-size:140px;}
+html.wide .hero-n .unit{font-size:48px;}
+html.wide .hero-n .pct{font-size:72px;}
 .hero-n small{font-family:var(--font);color:var(--muted-base);}
 
 /* beside each count: its share of the total stacked over the "คน" unit, same size as the unit; the %
@@ -121,7 +154,7 @@ body{font-family:var(--font);color:var(--ink);}
 .pct{font-family:var(--font);font-weight:600;white-space:nowrap;padding-bottom:.08em;
   background:linear-gradient(90deg,#113cf3,#722df4 55%,#e63bd8);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;}
 
-/* #2–12 — 3 × 4 grid on a cloud panel; slot 12 stays empty */
+/* ranks after the podium — 16:9: #2–12 in 3×4 (slot 12 empty); 4:1: #4–12 in 4×3 (last 3 slots empty) */
 /* the full-strength DNA spectrum (as on the #1 pill), so the near-opaque white tiles pop off it */
 .grid{position:relative;border-radius:28px;padding:12px;min-height:0;background:var(--grid-bg);}
 .tiles{position:relative;width:100%;height:100%;}
@@ -149,6 +182,13 @@ body{font-family:var(--font);color:var(--ink);}
 .tile-n .pct{font-size:48px;line-height:.9;padding-bottom:0;} /* tight stack: % + คน must fit the tile's height */
 .tile-n small{line-height:.9;}
 .tile-n small{font-family:var(--font);color:var(--muted);}
+/* 4:1 tiles are ~550×240: everything a step larger */
+html.wide .tile-rank{font-size:22px;padding:8px 16px;}
+html.wide .tile-th{font-size:32px;}
+html.wide .tile-en{font-size:24px;}
+html.wide .tile-n{font-size:80px;}
+html.wide .tile-n .unit{font-size:36px;}
+html.wide .tile-n .pct{font-size:56px;}
 
 .foot{position:absolute;right:72px;bottom:12px;font-size:18px;color:var(--muted-base);letter-spacing:.04em;}
 .foot b{display:inline-block;width:8px;height:8px;border-radius:50%;background:#15803d;margin-right:8px;vertical-align:middle;animation:pulse 2s infinite;}
@@ -171,9 +211,26 @@ body{font-family:var(--font);color:var(--ink);}
 .slot12{position:absolute;pointer-events:none;
   left:calc((100% - 24px) / 3 * 2 + 24px);top:calc((100% - 36px) / 4 * 3 + 36px);
   width:calc((100% - 24px) / 3);height:calc((100% - 36px) / 4);}
+/* 4:1: the three empty slots at the end of the bottom row */
+html.wide .slot12{left:calc((100% - 36px) / 4 + 12px);top:calc((100% - 24px) / 3 * 2 + 24px);
+  width:calc((100% - 36px) / 4 * 3 + 24px);height:calc((100% - 24px) / 3);}
+html.wide .fl-gold{right:auto;left:30%;top:-50px;}
+html.wide .fl-bitcoin{left:auto;right:180px;top:150px;--h:120px;}
+html.wide .fl-efin{left:46%;top:2px;--h:130px;}
+/* 4:1: the #1 card's neighbours sit close, so heart and candles move up into the air above #3 and #2 */
+html.wide .fl-heart{right:auto;left:500px;top:-70px;--h:160px;}
+html.wide .fl-stock{left:-330px;bottom:auto;top:-90px;--h:170px;}
 .fl-gold   {--h:250px;--rot:16deg; --swing:-5deg;--drift:-14px;--dur:9s;  --delay:-5s;  right:6px;top:-40px;}
 /* straddles the grid's bottom edge, breaking the frame */
 .fl-bitcoin{--h:112px;--rot:-14deg;--swing:6deg; --drift:-12px;--dur:6.5s;--delay:-3s;  left:40px;top:142px;}
+
+/* screen-size switch — fixed to the window, outside the stage (S switches, H hides) */
+.screen{position:fixed;left:16px;bottom:16px;z-index:50;display:flex;align-items:center;gap:4px;padding:4px 4px 4px 14px;
+  border-radius:48px;background:rgba(255,255,255,0.9);box-shadow:0 4px 14px rgba(17,19,24,0.14);font:600 14px var(--font);color:var(--muted);}
+.screen.hide{display:none;}
+.screen span{margin-right:6px;}
+.screen button{font:inherit;border:0;border-radius:48px;padding:6px 14px;background:transparent;color:var(--muted);cursor:pointer;}
+.screen button[aria-pressed="true"]{background:var(--ink);color:#fff;}
 
 @media (prefers-reduced-motion:reduce){.tile{transition:none}.foot b,.hero-glow i,.hero-card,.fl{animation:none}}
 </style>
@@ -191,10 +248,16 @@ body{font-family:var(--font);color:var(--ink);}
   </header>
 
   <main class="body">
-    <section class="hero">
-      <div class="pill hero-rank">อันดับ 1</div>
-      <div class="hero-wrap"><div class="hero-glow"><i></i><i></i><i></i><i></i><i></i></div><img class="fl fl-heart" src="assets/float/heart.webp" alt=""><div class="hero-card" id="heroCard"><img id="heroImg" alt=""></div><img class="fl fl-stock" src="assets/float/stock.webp" alt=""></div>
-      <div class="hero-n" id="heroN"><span class="v">0</span><span class="unit"><b class="pct"></b><small>คน</small></span></div>
+    <section class="podium">
+      <div class="pod pod-2"><div class="pill pod-rank">อันดับ 2</div>
+        <div class="pod-wrap"><div class="pod-card"><img alt=""></div></div>
+        <div class="pod-n"><span class="v">0</span><span class="unit"><b class="pct"></b><small>คน</small></span></div></div>
+      <div class="pod pod-1"><div class="pill pod-rank hero-rank">อันดับ 1</div>
+        <div class="pod-wrap hero-wrap"><div class="hero-glow"><i></i><i></i><i></i><i></i><i></i></div><img class="fl fl-heart" src="assets/float/heart.webp" alt=""><div class="pod-card hero-card"><img alt=""></div><img class="fl fl-stock" src="assets/float/stock.webp" alt=""></div>
+        <div class="pod-n hero-n"><span class="v">0</span><span class="unit"><b class="pct"></b><small>คน</small></span></div></div>
+      <div class="pod pod-3"><div class="pill pod-rank">อันดับ 3</div>
+        <div class="pod-wrap"><div class="pod-card"><img alt=""></div></div>
+        <div class="pod-n"><span class="v">0</span><span class="unit"><b class="pct"></b><small>คน</small></span></div></div>
     </section>
 
     <section class="grid"><div class="tiles" id="tiles">
@@ -202,6 +265,7 @@ body{font-family:var(--font);color:var(--ink);}
     </div></section>
   </main>
   <div class="foot"><b></b>ข้อมูลตัวอย่าง (จำลอง)</div></div>
+<div class="screen" id="screen" aria-label="ขนาดจอ"><span>จอ</span><button type="button" data-s="std">16:9</button><button type="button" data-s="wide">4:1</button></div>
 
 <script>
 const PERSONAS = {
@@ -221,18 +285,41 @@ const PERSONAS = {
 // starting counts for the simulation (the staff dashboard's figures at the time of the mock-up)
 const SAMPLE = {steadyhand:102,diamondhand:73,analyst:54,harvester:47,explorer:43,contrarian:35,
   waverider:29,planner:25,sage:15,maverick:11,guardian:8,collector:2};
-const COLS = 3, ROWS = 4, GAP = 12;
+// the two screens: stage size, ranks-grid shape, and how many ranks stand on the podium
+const SCREENS = {
+  std: {w:1920, h:1080, cols:3, rows:4, pod:1},  // 16:9
+  wide:{w:4096, h:1024, cols:4, rows:3, pod:3},  // 4:1 LED wall
+};
+const GAP = 12;
+let mode = new URLSearchParams(location.search).get('screen') === '4x1' ? 'wide' : 'std';
 
-/* ── fit the 1920×1080 stage into any window (letterboxed) ── */
+/* ── fit the stage into any window (letterboxed) ── */
 const stage = document.getElementById('stage');
 function fit(){
-  const s = Math.min(innerWidth/1920, innerHeight/1080);
+  const {w, h} = SCREENS[mode];
+  const s = Math.min(innerWidth / w, innerHeight / h);
   stage.style.transform = `scale(${s}) translate(-50%,-50%)`;
 }
-addEventListener('resize', fit); fit();
+addEventListener('resize', fit);
+
+/* ── screen-size switch: ?screen=16x9|4x1 (default 16:9); the URL follows so a link opens on that size ── */
+const screenSw = document.getElementById('screen');
+function setScreen(m){
+  mode = m;
+  document.documentElement.classList.toggle('wide', m === 'wide');
+  screenSw.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', b.dataset.s === m));
+  const u = new URL(location.href);
+  u.searchParams.set('screen', m === 'wide' ? '4x1' : '16x9');
+  history.replaceState(null, '', u);
+  fit();
+  if (shown) layout({instant:true}); // re-seat everything for the new shape, no flights
+}
+screenSw.addEventListener('click', e => { if (e.target.dataset.s) setScreen(e.target.dataset.s); });
 addEventListener('keydown', e => {
-  if (e.key.toLowerCase() === 'f')
-    document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen().catch(()=>{});
+  const k = e.key.toLowerCase();
+  if (k === 'f') document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen().catch(()=>{});
+  if (k === 's') setScreen(mode === 'wide' ? 'std' : 'wide');
+  if (k === 'h') screenSw.classList.toggle('hide');
 });
 
 /* ── numbers: a count and, beside it, its share of the total ── */
@@ -257,12 +344,16 @@ function tileFor(key){
   return tileEls[key] = el;
 }
 
-/* ── #1 swaps: the cards themselves fly between the grid and the hero slot ── */
+/* ── podium swaps: the cards themselves fly between podium slots and the grid ── */
 const FLY_MS = 1200, FLY_EASE = 'cubic-bezier(0.22,1,0.36,1)';
-const heroCard = document.getElementById('heroCard'), heroImg = document.getElementById('heroImg'), heroN = document.getElementById('heroN');
+// podium slots in rank order (#1, #2, #3); only the first SCREENS[mode].pod are in use
+const pods = [1, 2, 3].map(n => {
+  const el = document.querySelector('.pod-' + n), card = el.querySelector('.pod-card');
+  return {card, img:card.querySelector('img'), n:el.querySelector('.pod-n'), radius:n === 1 ? 28 : 22};
+});
 // an element's box in stage pixels (the stage is scaled to the window, so undo that scale)
 function stageRect(el){
-  const s = stage.getBoundingClientRect(), r = el.getBoundingClientRect(), k = s.width / 1920;
+  const s = stage.getBoundingClientRect(), r = el.getBoundingClientRect(), k = s.width / stage.offsetWidth;
   return {left:(r.left - s.left)/k, top:(r.top - s.top)/k, width:r.width/k, height:r.height/k};
 }
 function fly(key, from, to, r0, r1, onLand){
@@ -274,7 +365,7 @@ function fly(key, from, to, r0, r1, onLand){
   f.animate([kf(from, r0), kf(to, r1)], {duration:FLY_MS, easing:FLY_EASE, fill:'forwards'})
     .finished.then(() => { onLand(); f.remove(); });
 }
-function setHero(key){ heroImg.src = `assets/${key}.jpg`; heroImg.alt = PERSONAS[key].en; }
+function setPodImg(i, key){ pods[i].img.src = `assets/${key}.jpg`; pods[i].img.alt = PERSONAS[key].en; pods[i].img.style.visibility = ''; }
 // restartable class flag, e.g. flag(el, 'up', 3000)
 function flag(el, cls, ms){
   clearTimeout(el['_' + cls]);
@@ -325,38 +416,51 @@ setInterval(() => {
   if (stepped) layout();
 }, 100);
 
-let heroKey = null, prevRank = {}, flying = false;
-function layout(){
+let podKeys = [], prevRank = {}, flying = false;
+function layout(opts = {}){
+  const {cols, rows, pod:P} = SCREENS[mode];
   const ranked = KEYS.map(k => ({k, n:shown[k]}))
     // ties keep their current order, so equal counts don't flicker back and forth
     .sort((a, b) => b.n - a.n || (prevRank[a.k] || 99) - (prevRank[b.k] || 99) || a.k.localeCompare(b.k));
   const total = ranked.reduce((s, r) => s + r.n, 0);
   setText(document.getElementById('total'), fmt(total));
 
-  // mid-swap: only the numbers move; the order catches up when the cards land
-  if (flying){
-    setCount(heroN, shown[heroKey], total);
-    KEYS.forEach(k => { if (k !== heroKey && tileEls[k]) setCount(tileEls[k], shown[k], total); });
+  // mid-flight: only the numbers move; the order catches up when the cards land
+  if (flying && !opts.instant){
+    podKeys.forEach((k, i) => setCount(pods[i].n, shown[k], total));
+    KEYS.forEach(k => { if (!podKeys.includes(k) && tileEls[k]) setCount(tileEls[k], shown[k], total); });
     return;
   }
 
-  const top = ranked[0];
-  // a new #1: capture both card boxes before the grid re-lays out
-  const swap = heroKey && top.k !== heroKey && tileEls[top.k]
-    ? {up:top.k, down:heroKey, from:stageRect(tileEls[top.k].querySelector('.tile-card')), hero:stageRect(heroCard)}
-    : null;
-  if (!heroKey) setHero(top.k);
-  heroKey = top.k;
-  setCount(heroN, top.n, total);
+  const newPod = ranked.slice(0, P).map(r => r.k);
+  const instant = opts.instant || !podKeys.length;
+  // where every card sits right now (a podium slot, or a visible tile), before anything moves
+  const from = {};
+  if (!instant) KEYS.forEach(k => {
+    const i = podKeys.indexOf(k);
+    if (i >= 0) from[k] = {pod:i, rect:stageRect(pods[i].card)};
+    else if (tileEls[k] && tileEls[k].style.visibility !== 'hidden') from[k] = {pod:-1, rect:stageRect(tileEls[k].querySelector('.tile-card'))};
+  });
+  // cards whose home changes: into / out of / across the podium
+  const movers = KEYS.filter(k => from[k] && newPod.indexOf(k) !== from[k].pod);
 
-  // the hero persona leaves the grid; ranks 2–12 fill slots 1–11 (slot 12 stays empty)
-  const w = (tilesEl.clientWidth - GAP * (COLS - 1)) / COLS;
-  const h = (tilesEl.clientHeight - GAP * (ROWS - 1)) / ROWS;
-  if (tileEls[top.k]) tileEls[top.k].style.visibility = 'hidden';
-  ranked.slice(1).forEach((r, i) => {
-    const fresh = !tileEls[r.k], el = tileFor(r.k), col = i % COLS, row = Math.floor(i / COLS), rank = i + 2;
-    const jump = fresh || el.style.visibility === 'hidden'; // just came down from #1: place it, don't slide
+  newPod.forEach((k, i) => {
+    if (movers.includes(k)) pods[i].img.style.visibility = 'hidden'; // revealed when its card lands
+    else if (podKeys[i] !== k || instant) setPodImg(i, k);
+    setCount(pods[i].n, shown[k], total);
+  });
+  podKeys = newPod;
+
+  // the rest fill the grid in rank order; its trailing slots stay empty
+  const w = (tilesEl.clientWidth - GAP * (cols - 1)) / cols;
+  const h = (tilesEl.clientHeight - GAP * (rows - 1)) / rows;
+  newPod.forEach(k => { if (tileEls[k]) tileEls[k].style.visibility = 'hidden'; });
+  ranked.slice(P).forEach((r, i) => {
+    const fresh = !tileEls[r.k], el = tileFor(r.k), col = i % cols, row = Math.floor(i / cols), rank = i + P + 1;
+    // just came down from the podium (or the grid changed shape): place it, don't slide
+    const jump = fresh || instant || el.style.visibility === 'hidden';
     el.style.visibility = '';
+    el.classList.toggle('hold-card', movers.includes(r.k));
     el.style.setProperty('--w', w + 'px');
     el.style.setProperty('--h', h + 'px');
     if (jump) el.style.transition = 'none';
@@ -364,24 +468,25 @@ function layout(){
     if (jump){ el.offsetWidth; el.style.transition = ''; }
     el.querySelector('.rk').textContent = `อันดับ ${rank}`;
     const prev = prevRank[r.k];
-    if (prev && rank < prev){ flag(el, 'rise', FLY_MS); flag(el, 'up', 3000); el.classList.remove('down'); }
-    if (prev && rank > prev){ flag(el, 'fall', FLY_MS); flag(el, 'down', 3000); el.classList.remove('up'); }
+    if (!instant && prev && rank < prev){ flag(el, 'rise', FLY_MS); flag(el, 'up', 3000); el.classList.remove('down'); }
+    if (!instant && prev && rank > prev){ flag(el, 'fall', FLY_MS); flag(el, 'down', 3000); el.classList.remove('up'); }
     setCount(el, r.n, total);
   });
   prevRank = Object.fromEntries(ranked.map((r, i) => [r.k, i + 1]));
 
-  if (swap){
-    const down = tileEls[swap.down];
-    down.classList.add('hold-card');
-    heroImg.style.visibility = 'hidden';
-    flying = true;
-    fly(swap.up, swap.from, swap.hero, 10, 28, () => { setHero(swap.up); heroImg.style.visibility = ''; });
-    fly(swap.down, swap.hero, stageRect(down.querySelector('.tile-card')), 28, 10, () => {
-      down.classList.remove('hold-card');
-      flying = false;
-      layout(); // apply any overtakes that ticked in during the flight
+  if (!movers.length) return;
+  flying = true;
+  let landing = movers.length;
+  movers.forEach(k => {
+    const to = newPod.indexOf(k);
+    const toEl = to >= 0 ? pods[to].card : tileEls[k].querySelector('.tile-card');
+    const r0 = from[k].pod >= 0 ? pods[from[k].pod].radius : 10, r1 = to >= 0 ? pods[to].radius : 10;
+    fly(k, from[k].rect, stageRect(toEl), r0, r1, () => {
+      if (to >= 0){ if (podKeys[to] === k) setPodImg(to, k); }
+      else tileEls[k].classList.remove('hold-card');
+      if (--landing === 0){ flying = false; layout(); } // apply any overtakes that ticked in during the flights
     });
-  }
+  });
 }
 
 /* ── simulated data ──
@@ -409,6 +514,7 @@ function simulate(){
   render({counts:sim});
 }
 
+setScreen(mode);
 render({counts:sim});
 setInterval(simulate, FEED_MS);
 </script>
