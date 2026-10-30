@@ -226,9 +226,9 @@ html.wide .tile-n .pct{font-size:56px;}
 /* 4:1: the 3×3 grid is full, so gold and coin break its frame instead — gold half out past the right
    edge into the sky margin, the coin straddling the bottom edge */
 html.wide .slot12{left:0;top:0;width:100%;height:100%;}
-html.wide .fl-gold{right:-120px;top:28%;}
+html.wide .fl-gold{right:-240px;top:28%;} /* fully in the sky margin, clear of the gradient panel */
 html.wide .fl-bitcoin{left:auto;right:36%;top:auto;bottom:-66px;--h:110px;}
-html.wide .fl-efin{left:71%;top:2px;--h:130px;} /* over the grid's middle column (#5) */
+html.wide .fl-efin{left:62.4%;top:2px;--h:130px;} /* over the seam between #4 and #5 */
 /* 4:1: #2/#3 flank #1 at mid-height, so heart and candles float in the open air outside them */
 html.wide .fl-heart{right:auto;left:820px;top:110px;--h:150px;}
 html.wide .fl-stock{left:-700px;bottom:auto;top:190px;--h:260px;}
@@ -236,7 +236,7 @@ html.wide .fl-stock{left:-700px;bottom:auto;top:190px;--h:260px;}
 html.wide .fl-stock,html.wide .fl-gold{filter:saturate(1.35) drop-shadow(0 26px 24px rgba(17,19,24,0.24));--dur:9s;}
 html.wide .fl-coin2{filter:saturate(1.1) blur(1.2px) drop-shadow(0 8px 8px rgba(17,19,24,0.10));opacity:.85;}
 .fl-coin2{display:none;--h:80px;--rot:22deg;--swing:-6deg;--drift:-8px;--dur:9.5s;--delay:-6s;}
-html.wide .fl-coin2{display:block;left:1110px;top:0;} /* the farthest piece: a small coin above #3 */
+html.wide .fl-coin2{display:block;left:1110px;top:-180px;} /* the farthest piece: a small coin high above #3, level with the triangle */
 .fl-gold   {--h:250px;--rot:16deg; --swing:-5deg;--drift:-14px;--dur:9s;  --delay:-5s;  right:6px;top:-40px;}
 /* straddles the grid's bottom edge, breaking the frame */
 .fl-bitcoin{--h:112px;--rot:-14deg;--swing:6deg; --drift:-12px;--dur:6.5s;--delay:-3s;  left:40px;top:142px;}
