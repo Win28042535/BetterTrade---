@@ -44,8 +44,8 @@
     linear-gradient(180deg,#a9c9f3 0%,#bcd5f6 38%,#d6e3f7 72%,#eef2f9 100%);
   /* the same sky stretched along the 4:1 wall: the shaft lands on the podium's #1, clouds run the length */
   --stage-bg-wide:
-    radial-gradient(360px 1000px at 25.5% -10%, rgba(255,255,255,0.55), transparent 70%),
-    radial-gradient(640px 1100px at 25.5% -10%, rgba(150,192,251,0.45), transparent 72%),
+    radial-gradient(360px 1000px at 29.4% -10%, rgba(255,255,255,0.55), transparent 70%),
+    radial-gradient(640px 1100px at 29.4% -10%, rgba(150,192,251,0.45), transparent 72%),
     radial-gradient(900px 240px at 4% 102%, rgba(255,255,255,0.75), transparent 70%),
     radial-gradient(1000px 260px at 38% 104%, rgba(255,255,255,0.6), transparent 70%),
     radial-gradient(1100px 280px at 74% 106%, rgba(255,255,255,0.65), transparent 70%),
@@ -59,9 +59,9 @@ body{font-family:var(--font);color:var(--ink);}
 
 .stage{position:absolute;left:50%;top:50%;width:1920px;height:1080px;transform-origin:0 0;overflow:hidden;
   padding:44px 72px 44px;display:grid;grid-template-rows:auto 1fr;gap:32px;background:var(--stage-bg);}
-/* 4:1: content is held to a ~3570px block (podium + grid), centred, so the header spans what the eye takes in at
+/* 4:1: content is held to a ~3070px block (podium + grid), centred, so the header spans what the eye takes in at
    once rather than the full 16 m wall; the sky runs on past it at both ends */
-html.wide .stage{--px:263px;width:4096px;height:1024px;padding:36px var(--px) 40px;gap:28px;background:var(--stage-bg-wide);}
+html.wide .stage{--px:514px;width:4096px;height:1024px;padding:36px var(--px) 40px;gap:28px;background:var(--stage-bg-wide);}
 
 /* ── header ── */
 .logo{position:absolute;top:28px;right:var(--px,72px);height:34px;}
@@ -75,7 +75,7 @@ html.wide .stage{--px:263px;width:4096px;height:1024px;padding:36px var(--px) 40
 
 /* ── body ── */
 .body{display:grid;grid-template-columns:560px 1fr;gap:40px;min-height:0;}
-html.wide .body{grid-template-columns:1560px 1fr;gap:80px;}
+html.wide .body{grid-template-columns:1380px 1fr;gap:80px;}
 
 /* podium — 16:9 shows only #1 (the hero); 4:1 lines up 2–1–3 on a common floor, #1 tallest and centred.
    The #1 slot keeps the .hero-* look; the glow behind its card is the screen's loudest element */
@@ -86,11 +86,21 @@ html.wide .podium{gap:120px;}
 html.wide .pod-2,html.wide .pod-3{display:flex;}
 .pod-wrap{position:relative;margin-top:16px;}
 .pod-card img{width:100%;height:100%;object-fit:cover;display:block;}
-/* #2/#3: quieter — white pill, smaller card with a plain lifted shadow, no glow or float */
-.pod-2 .pod-card,.pod-3 .pod-card{position:relative;height:400px;aspect-ratio:5/7;border-radius:22px;overflow:hidden;
-  box-shadow:0 2px 4px rgba(17,19,24,0.14),0 18px 36px rgba(17,19,24,0.18);}
-.pod-2 .pod-card::after,.pod-3 .pod-card::after{content:"";position:absolute;inset:0;border-radius:inherit;border:1px solid rgba(255,255,255,0.75);pointer-events:none;}
-.pod-2 .pod-rank,.pod-3 .pod-rank{padding:10px 26px;font-size:26px;background:rgba(255,255,255,0.88);color:var(--ink);box-shadow:0 4px 12px rgba(17,19,24,0.08);}
+/* #2/#3: a step below #1 — a spectrum-ringed white pill, a 3px spectrum rim, a soft still cyan/violet
+   halo and a gentler, slower float (vs #1's filled pill, drifting rainbow glow and 6px float) */
+.pod-2 .pod-wrap::before,.pod-3 .pod-wrap::before{content:"";position:absolute;inset:-28px;border-radius:40px;filter:blur(22px);
+  background:
+    radial-gradient(closest-side at 28% 34%, color-mix(in srgb,#00d4fe 30%,transparent), transparent),
+    radial-gradient(closest-side at 72% 70%, color-mix(in srgb,#722df4 28%,transparent), transparent);}
+.pod-2 .pod-card,.pod-3 .pod-card{position:relative;z-index:1;height:400px;aspect-ratio:5/7;border-radius:22px;overflow:hidden;
+  box-shadow:0 2px 4px rgba(17,19,24,0.14),0 16px 32px rgba(17,19,24,0.16),0 26px 60px color-mix(in srgb,var(--bloom) 22%,transparent);
+  animation:floatSm 8s ease-in-out infinite;}
+.pod-3 .pod-card{animation-delay:-4s;}
+@keyframes floatSm{50%{transform:translateY(-4px)}}
+.pod-2 .pod-card::after,.pod-3 .pod-card::after{content:"";position:absolute;inset:0;border-radius:inherit;padding:3px;background:var(--spectrum);
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none;}
+.pod-2 .pod-rank,.pod-3 .pod-rank{padding:9px 24px;font-size:26px;color:var(--ink);border:2px solid transparent;
+  background:linear-gradient(#fff,#fff) padding-box,var(--spectrum) border-box;box-shadow:0 4px 12px rgba(17,19,24,0.10);}
 .pod-n{margin-top:32px;display:flex;align-items:flex-end;justify-content:center;
   font-family:var(--serif);font-weight:600;font-size:104px;line-height:.8;font-variant-numeric:tabular-nums;}
 .pod-n .unit{margin-left:12px;font-size:36px;}
@@ -153,7 +163,7 @@ html.wide .hero-n .pct{font-size:72px;}
 /* beside each count: its share of the total stacked over the "คน" unit, same size as the unit; the %
    takes the deep middle of the spectrum (blue → violet → magenta) — the pale ends wash out on white */
 .unit{display:inline-flex;flex-direction:column;align-items:flex-start;line-height:1;}
-.pct{font-family:var(--font);font-weight:600;white-space:nowrap;padding-bottom:.08em;
+.pct{font-family:var(--font);font-weight:500;white-space:nowrap;padding-bottom:.08em;
   background:linear-gradient(90deg,#113cf3,#722df4 55%,#e63bd8);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;}
 
 /* ranks after the podium — 16:9: #2–12 in 3×4 (slot 12 empty); 4:1: #4–12 in 4×3 (last 3 slots empty) */
@@ -217,11 +227,16 @@ html.wide .tile-n .pct{font-size:56px;}
    edge into the sky margin, the coin straddling the bottom edge */
 html.wide .slot12{left:0;top:0;width:100%;height:100%;}
 html.wide .fl-gold{right:-120px;top:28%;}
-html.wide .fl-bitcoin{left:auto;right:36%;top:auto;bottom:-66px;--h:120px;}
-html.wide .fl-efin{left:46%;top:2px;--h:130px;}
+html.wide .fl-bitcoin{left:auto;right:36%;top:auto;bottom:-66px;--h:110px;}
+html.wide .fl-efin{left:71%;top:2px;--h:130px;} /* over the grid's middle column (#5) */
 /* 4:1: #2/#3 flank #1 at mid-height, so heart and candles float in the open air outside them */
-html.wide .fl-heart{right:auto;left:820px;top:110px;--h:160px;}
-html.wide .fl-stock{left:-660px;bottom:auto;top:250px;--h:170px;}
+html.wide .fl-heart{right:auto;left:820px;top:110px;--h:150px;}
+html.wide .fl-stock{left:-700px;bottom:auto;top:190px;--h:260px;}
+/* 4:1 depth: near pieces are big, crisp, deeply shadowed and slow; far ones small, a touch soft and pale */
+html.wide .fl-stock,html.wide .fl-gold{filter:saturate(1.35) drop-shadow(0 26px 24px rgba(17,19,24,0.24));--dur:9s;}
+html.wide .fl-coin2{filter:saturate(1.1) blur(1.2px) drop-shadow(0 8px 8px rgba(17,19,24,0.10));opacity:.85;}
+.fl-coin2{display:none;--h:80px;--rot:22deg;--swing:-6deg;--drift:-8px;--dur:9.5s;--delay:-6s;}
+html.wide .fl-coin2{display:block;left:1110px;top:0;} /* the farthest piece: a small coin above #3 */
 .fl-gold   {--h:250px;--rot:16deg; --swing:-5deg;--drift:-14px;--dur:9s;  --delay:-5s;  right:6px;top:-40px;}
 /* straddles the grid's bottom edge, breaking the frame */
 .fl-bitcoin{--h:112px;--rot:-14deg;--swing:6deg; --drift:-12px;--dur:6.5s;--delay:-3s;  left:40px;top:142px;}
@@ -234,7 +249,7 @@ html.wide .fl-stock{left:-660px;bottom:auto;top:250px;--h:170px;}
 .screen button{font:inherit;border:0;border-radius:48px;padding:6px 14px;background:transparent;color:var(--muted);cursor:pointer;}
 .screen button[aria-pressed="true"]{background:var(--ink);color:#fff;}
 
-@media (prefers-reduced-motion:reduce){.tile{transition:none}.foot b,.hero-glow i,.hero-card,.fl{animation:none}}
+@media (prefers-reduced-motion:reduce){.tile{transition:none}.foot b,.hero-glow i,.pod-card,.fl{animation:none}}
 </style>
 </head>
 <body>
@@ -251,6 +266,7 @@ html.wide .fl-stock{left:-660px;bottom:auto;top:250px;--h:170px;}
 
   <main class="body">
     <section class="podium">
+      <img class="fl fl-coin2" src="assets/float/bitcoin.webp" alt="">
       <div class="pod pod-2"><div class="pill pod-rank">อันดับ 2</div>
         <div class="pod-wrap"><div class="pod-card"><img alt=""></div></div>
         <div class="pod-n"><span class="v">0</span><span class="unit"><b class="pct"></b><small>คน</small></span></div></div>
